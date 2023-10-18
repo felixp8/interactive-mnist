@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+  <!-- Basic Page Needs
+  –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+  <meta charset="utf-8">
+  <title>Interactive MNIST</title>
+  <meta name="description" content="">
+  <meta name="author" content="">
+
+  <!-- Mobile Specific Metas
+  –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <!-- FONT
+  –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+  <link href="css/fonts.css" rel="stylesheet" type="text/css">
+
+  <!-- CSS
+  –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+  <link rel="stylesheet" href="css/normalize.css">
+  <link rel="stylesheet" href="css/skeleton.css">
+
+  <!-- Favicon
+  –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+  <link rel="icon" type="image/png" href="images/favicon.png">
+
+</head>
+<body>
+
+  <!-- Primary Page Layout
+  –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+  <div class="container" id="main">
+
+    <div class="row" id="game-select">
+      <div class="twelve columns" style="margin-top: 5%">
+        <h3>Choose a game:</h3>
+        <div class="row">
+            <div class="one-half column">
+                <h5>MNIST variant:</h5>
+                <div class="row"><button class="button-primary" id="classic">Classic MNIST</button></div>
+                <div class="row"><button class="button-primary" id="sequential">Sequential MNIST</button></div>
+                <div class="row"><button class="button-primary" id="permuted">Permuted MNIST</button></div>
+            </div>
+            <div class="one-half column">
+                <h5>Duration:</h5>
+                <div class="row"><button class="button-primary" id="10q">10 questions</button></div>
+                <div class="row"><button class="button-primary" id="endless">Endless</button></div>
+            </div>
+        </div>
+        <div class="row" style="margin-top: 10%">
+            <div class="one column offset-by-ten">
+                <button class="button-primary" id="submit" style="background-color: #ccc; border-color: #ccc">
+                    Start
+                </button>
+            </div>
+        </div>
+      </div>
+    </div>
+
+
+  </div>
+
+  <script type="text/javascript" src="http://ajax.googleapis.com/ajax/libs/jquery/1.6.2/jquery.min.js"> </script>
+
+  <script>
+  function testJQ() {
+    $.getJSON("../data/mnist_json/0.json", function(data) {console.log(data.keys())})
+  }
+
+  const all_variants = ["classic", "sequential", "permuted"];
+  const all_durations = ["10q", "endless"];
+
+  document.getElementById("classic").addEventListener("click", function() {clickGameVariant("classic")});
+  document.getElementById("sequential").addEventListener("click", function() {clickGameVariant("sequential")});
+  document.getElementById("permuted").addEventListener("click", function() {clickGameVariant("permuted")});
+  
+  document.getElementById("10q").addEventListener("click", function() {clickGameDuration("10q")});
+  document.getElementById("endless").addEventListener("click", function() {clickGameDuration("endless")});
+  
+  document.getElementById("submit").addEventListener("click", testJQ);
+  
+
+  function clickGameVariant(variant) {
+    var variant_selected = false;
+    for (let i = 0; i < all_variants.length; i++) {
+      if (variant == all_variants[i]) {
+        if (
+            (document.getElementById(all_variants[i]).style.getPropertyValue("background-color") == "rgb(51, 195, 240)") |
+            (document.getElementById(all_variants[i]).style.getPropertyValue("background-color") == "")
+        ) {
+            variant_selected = true;
+            document.getElementById(all_variants[i]).style.setProperty("background-color", "#33f082");
+            document.getElementById(all_variants[i]).style.setProperty("border-color", "#33f082");
+        } else {
+            variant_selected = false;
+            document.getElementById(all_variants[i]).style.setProperty("background-color", "#33C3F0");
+            document.getElementById(all_variants[i]).style.setProperty("border-color", "#33C3F0");
+        }
+      } else {
+        document.getElementById(all_variants[i]).style.setProperty("background-color", "#33C3F0");
+        document.getElementById(all_variants[i]).style.setProperty("border-color", "#33C3F0");
+      }
+    }
+    var duration_selected = checkDurationSelected();
+    if ((variant_selected == true) && (duration_selected == true)) {
+        enableGameStart();
+    } else {
+        disableGameStart();
+    }
+  }
+
+  function clickGameDuration(duration) {
+    var duration_selected = false;
+    for (let i = 0; i < all_durations.length; i++) {
+      if (duration == all_durations[i]) {
+        if (
+            (document.getElementById(all_durations[i]).style.getPropertyValue("background-color") == "rgb(51, 195, 240)") |
+            (document.getElementById(all_durations[i]).style.getPropertyValue("background-color") == "")
+        ) { 
+            duration_selected = true;
+            document.getElementById(all_durations[i]).style.setProperty("background-color", "#33f082");
+            document.getElementById(all_durations[i]).style.setProperty("border-color", "#33f082");
+        } else {
+            duration_selected = false;
+            document.getElementById(all_durations[i]).style.setProperty("background-color", "#33C3F0");
+            document.getElementById(all_durations[i]).style.setProperty("border-color", "#33C3F0");
+        }
+      } else {
+        document.getElementById(all_durations[i]).style.setProperty("background-color", "#33C3F0");
+        document.getElementById(all_durations[i]).style.setProperty("border-color", "#33C3F0");
+      }
+    }
+    var variant_selected = checkVariantSelected();
+    if ((variant_selected == true) && (duration_selected == true)) {
+        enableGameStart();
+    } else {
+        disableGameStart();
+    }
+  }
+
+  function checkVariantSelected() {
+    var selected_variant = null;
+    for (let i = 0; i < all_variants.length; i++) {
+      if (document.getElementById(all_variants[i]).style.getPropertyValue("background-color") == "rgb(51, 240, 130)") {
+        selected_variant = all_variants[i];
+      }
+    }
+    console.log(selected_variant);
+    return (selected_variant != null);
+  }
+
+  function checkDurationSelected() {
+    var selected_duration = null;
+    for (let i = 0; i < all_durations.length; i++) {
+      if (document.getElementById(all_durations[i]).style.getPropertyValue("background-color") == "rgb(51, 240, 130)") {
+        selected_duration = all_durations[i];
+      }
+    }
+    console.log(selected_duration);
+    return (selected_duration != null);
+  }
+
+  function enableGameStart() {
+    document.getElementById("submit").style.setProperty("background-color", "#33C3F0");
+    document.getElementById("submit").style.setProperty("border-color", "#33C3F0");
+  }
+
+  function disableGameStart() {
+    document.getElementById("submit").style.setProperty("background-color", "#ccc");
+    document.getElementById("submit").style.setProperty("border-color", "#ccc");
+  }
+
+  function clickGameStart() {
+    document.getElementById("game-select").style.display = "none";
+  }
+  </script>
+
+<!-- End Document
+  –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+</body>
+</html>
