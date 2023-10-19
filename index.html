@@ -793,7 +793,7 @@
         message = bad_messages[0];
     } else if ((score > chance) && (score < 4.0)) {
         message = okay_messages[0];
-    } else if ((score > chance) && (score >= 4.0)) {
+    } else if ((score > chance) && (score >= 4.0) && (score < model)) {
         message = good_messages[Math.floor(Math.random() * 2)];
     } else if (score >= model) {
         message = great_messages[0];
