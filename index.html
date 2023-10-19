@@ -78,7 +78,7 @@
 
     const col = document.createElement("div");
     col.classList.add("twelve", "columns");
-    col.style.setProperty("margin-top", "5%");
+    col.style.setProperty("margin-top", "2%");
 
     const h3 = document.createElement("h3");
     h3.textContent = "Choose a game:";
@@ -184,7 +184,6 @@
     for (let i = 0; i < all_variants.length; i++) {
       if (variant == all_variants[i]) {
         if (
-            (document.getElementById(all_variants[i]).style.getPropertyValue("background-color") == "rgb(51, 195, 240)") |
             (document.getElementById(all_variants[i]).style.getPropertyValue("background-color") == "")
         ) {
             variant_selected = true;
@@ -192,12 +191,12 @@
             document.getElementById(all_variants[i]).style.setProperty("border-color", "#33f082");
         } else {
             variant_selected = false;
-            document.getElementById(all_variants[i]).style.setProperty("background-color", "#33C3F0");
-            document.getElementById(all_variants[i]).style.setProperty("border-color", "#33C3F0");
+            document.getElementById(all_variants[i]).style.setProperty("background-color", "");
+            document.getElementById(all_variants[i]).style.setProperty("border-color", "");
         }
       } else {
-        document.getElementById(all_variants[i]).style.setProperty("background-color", "#33C3F0");
-        document.getElementById(all_variants[i]).style.setProperty("border-color", "#33C3F0");
+        document.getElementById(all_variants[i]).style.setProperty("background-color", "");
+        document.getElementById(all_variants[i]).style.setProperty("border-color", "");
       }
     }
     var duration_selected = checkDurationSelected();
@@ -214,7 +213,6 @@
     for (let i = 0; i < all_durations.length; i++) {
       if (duration == all_durations[i]) {
         if (
-            (document.getElementById(all_durations[i]).style.getPropertyValue("background-color") == "rgb(51, 195, 240)") |
             (document.getElementById(all_durations[i]).style.getPropertyValue("background-color") == "")
         ) { 
             duration_selected = true;
@@ -222,12 +220,12 @@
             document.getElementById(all_durations[i]).style.setProperty("border-color", "#33f082");
         } else {
             duration_selected = false;
-            document.getElementById(all_durations[i]).style.setProperty("background-color", "#33C3F0");
-            document.getElementById(all_durations[i]).style.setProperty("border-color", "#33C3F0");
+            document.getElementById(all_durations[i]).style.setProperty("background-color", "");
+            document.getElementById(all_durations[i]).style.setProperty("border-color", "");
         }
       } else {
-        document.getElementById(all_durations[i]).style.setProperty("background-color", "#33C3F0");
-        document.getElementById(all_durations[i]).style.setProperty("border-color", "#33C3F0");
+        document.getElementById(all_durations[i]).style.setProperty("background-color", "");
+        document.getElementById(all_durations[i]).style.setProperty("border-color", "");
       }
     }
     var variant_selected = checkVariantSelected();
@@ -284,8 +282,8 @@
 
 
   function enableGameStart() {
-    document.getElementById("submit").style.setProperty("background-color", "#33C3F0");
-    document.getElementById("submit").style.setProperty("border-color", "#33C3F0");
+    document.getElementById("submit").style.setProperty("background-color", "");
+    document.getElementById("submit").style.setProperty("border-color", "");
   }
 
 
@@ -340,7 +338,7 @@
 
     const col = document.createElement("div");
     col.classList.add("twelve", "columns");
-    col.style.setProperty("margin-top", "5%");
+    col.style.setProperty("margin-top", "2%");
 
     const subrow1 = document.createElement("div");
     subrow1.classList.add("row");
@@ -552,9 +550,15 @@
         console.log("no imgbox found");
         return;
     }
+    
+    const oldscript = document.getElementById("pixel-vals");
+    if (oldscript != null) {
+        oldscript.remove();
+    }
 
     var script = document.createElement("script");
     script.src = "js/mnist/" + imgname + ".js";
+    script.id = "pixel-vals"
     script.async = true;
     script.onload = () => {
       console.log('Script loaded successfuly');
@@ -578,14 +582,14 @@
     const playbutton = document.getElementById("play");
 
     imgbox.src = "images/pixels/" + pixel_data[0].toString() + ".png";
-    playbutton.style.setProperty("background-color", "#33C3F0");
-    playbutton.style.setProperty("border-color", "#33C3F0");
+    playbutton.style.setProperty("background-color", "");
+    playbutton.style.setProperty("border-color", "");
   }
 
 
   function playImageSequence() {
     const playbutton = document.getElementById("play");
-    if (playbutton.style.getPropertyValue("background-color") != "rgb(51, 195, 240)") {
+    if (playbutton.style.getPropertyValue("background-color") != "") {
         return;
     }
     playbutton.style.setProperty("background-color", "#ccc");
@@ -601,10 +605,10 @@
     function stepImage() {
       if (counter == 784) {
         clearInterval(timer);
-        playbutton.style.setProperty("background-color", "#33C3F0");
-        playbutton.style.setProperty("border-color", "#33C3F0");
+        playbutton.style.setProperty("background-color", "");
+        playbutton.style.setProperty("border-color", "");
         playbutton.textContent = "Play";
-      } else if (document.getElementById("next").style.getPropertyValue("background-color") == "rgb(51, 195, 240)") {
+      } else if (document.getElementById("next").style.getPropertyValue("background-color") == "") {
         clearInterval(timer);
         playbutton.style.setProperty("background-color", "#ccc");
         playbutton.style.setProperty("border-color", "#ccc");
@@ -632,8 +636,8 @@
     question.textContent = "Question " + questionNumber.toString() + ":";
     
     for (let i = 0; i < buttons.length; i++) {
-        document.getElementById(buttons[i]).style.setProperty("background-color", "#33C3F0");
-        document.getElementById(buttons[i]).style.setProperty("border-color", "#33C3F0");
+        document.getElementById(buttons[i]).style.setProperty("background-color", "");
+        document.getElementById(buttons[i]).style.setProperty("border-color", "");
     }
 
     document.getElementById("next").style.setProperty("background-color", "#ccc");
@@ -642,7 +646,7 @@
 
 
   function checkAnswer(selection) {
-    if (document.getElementById("next").style.getPropertyValue("background-color") == "rgb(51, 195, 240)") {
+    if (document.getElementById("next").style.getPropertyValue("background-color") == "") {
         return;
     }
     document.getElementById((answer)).style.setProperty("background-color", "#33f082");
@@ -665,8 +669,8 @@
         playbutton.textContent = "Play";
     }
 
-    document.getElementById("next").style.setProperty("background-color", "#33C3F0");
-    document.getElementById("next").style.setProperty("border-color", "#33C3F0");
+    document.getElementById("next").style.setProperty("background-color", "");
+    document.getElementById("next").style.setProperty("border-color", "");
   }
 
 
@@ -706,7 +710,7 @@
 
   function clickNext(display) {
     const button = document.getElementById("next");
-    if (button.style.getPropertyValue("background-color") == "rgb(51, 195, 240)") {
+    if (button.style.getPropertyValue("background-color") == "") {
         newQuestion(display);
         if (button.textContent == "Finish") {
             return clickFinish();
@@ -722,7 +726,7 @@
 
   function clickNextEndless(display) {
     const button = document.getElementById("next");
-    if (button.style.getPropertyValue("background-color") == "rgb(51, 195, 240)") {
+    if (button.style.getPropertyValue("background-color") == "") {
         newQuestion(display);
     } else {
         return;
@@ -811,7 +815,7 @@
 
     const col = document.createElement("div");
     col.classList.add("twelve", "columns");
-    col.style.setProperty("margin-top", "5%");
+    col.style.setProperty("margin-top", "2%");
 
     const subrow1 = document.createElement("div");
     subrow1.classList.add("row");
