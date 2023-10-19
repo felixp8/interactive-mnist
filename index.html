@@ -590,7 +590,6 @@
     }
     playbutton.style.setProperty("background-color", "#ccc");
     playbutton.style.setProperty("border-color", "#ccc");
-    playbutton.textContent = "Playing...";
 
     const imgbox = document.getElementById("img-box");
     const speed = Math.floor(document.getElementById("sequential-speed").value);
@@ -617,6 +616,7 @@
           imgbox.src = "images/pixels/" + pixel_data[permutation[counter]].toString() + ".png";
         }
         counter += 1;
+        playbutton.textContent = "Playing... " + counter.toString();
       }
     }
   }
@@ -656,6 +656,13 @@
     } else {
       document.getElementById((selection)).style.setProperty("background-color", "#f03333");
       document.getElementById((selection)).style.setProperty("border-color", "#f03333");
+    }
+
+    if (variant != "classic") {
+        playbutton = document.getElementById("play");
+        playbutton.style.setProperty("background-color", "#ccc");
+        playbutton.style.setProperty("border-color", "#ccc");
+        playbutton.textContent = "Play";
     }
 
     document.getElementById("next").style.setProperty("background-color", "#33C3F0");
