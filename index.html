@@ -1,0 +1,936 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+  <!-- Basic Page Needs
+  –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+  <meta charset="utf-8">
+  <title>Interactive MNIST</title>
+  <meta name="description" content="">
+  <meta name="author" content="">
+
+  <!-- Mobile Specific Metas
+  –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <!-- FONT
+  –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+  <link href="css/fonts.css" rel="stylesheet" type="text/css">
+
+  <!-- CSS
+  –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+  <link rel="stylesheet" href="css/normalize.css">
+  <link rel="stylesheet" href="css/skeleton.css">
+
+  <!-- Favicon
+  –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+  <link rel="icon" type="image/png" href="images/favicon.png">
+
+</head>
+<body>
+
+  <!-- Primary Page Layout
+  –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+  <div class="container" id="main">
+
+  </div>
+
+  <script src="js/file_map.js"></script>
+  <script src="js/permutation.js"></script>
+
+  <script>
+  // common global vars
+  var answer = null;
+  var score = 0;
+  var questionNumber = 0;
+  var variant = null;
+  var duration = null;
+
+  // benchmark scores
+  const classicModels = ["MLP", "CNN", "CapsNet", "MCDNN"];
+  const classicScores = [97.65, 99.47, 99.75, 99.77];
+
+  const sequentialModels = ["RNN", "LSTM", "TCN", "SMPConv"];
+  const sequentialScores = [97.00, 98.20, 99.00, 99.75];
+
+  const permutedModels = ["RNN", "LSTM", "TCN", "SMPConv"];
+  const permutedScores = [82.00, 88.00, 97.20, 99.10];
+
+  // game selection
+
+  const all_variants = ["classic", "sequential", "permuted"];
+  const all_durations = ["10q", "endless"];
+
+
+  function buildGameSelect() {
+    answer = null;
+    imgname = null;
+    score = 0;
+    questionNumber = 0;
+    variant = null;
+    duration = null;
+
+    const main = document.getElementById("main");
+
+    const row = document.createElement("div");
+    row.classList.add("row");
+    row.id = "game-select";
+
+    const col = document.createElement("div");
+    col.classList.add("twelve", "columns");
+    col.style.setProperty("margin-top", "5%");
+
+    const h3 = document.createElement("h3");
+    h3.textContent = "Choose a game:";
+
+    const subrow1 = document.createElement("div");
+    subrow1.classList.add("row");
+
+    const subcol1 = document.createElement("div");
+    subcol1.classList.add("one-half", "column");
+
+    const h51 = document.createElement("h5");
+    h51.textContent = "MNIST variant:";
+
+    const subsubrow1 = document.createElement("div");
+    subsubrow1.classList.add("row");
+    const button1 = document.createElement("button");
+    button1.classList.add("button-primary")
+    button1.id = "classic";
+    button1.textContent = "Classic MNIST";
+    button1.title = "The usual handwritten digit recognition task";
+    button1.addEventListener("click", function() {clickGameVariant("classic")});
+    subsubrow1.appendChild(button1);
+
+    const subsubrow2 = document.createElement("div");
+    subsubrow2.classList.add("row");
+    const button2 = document.createElement("button");
+    button2.classList.add("button-primary");
+    button2.id = "sequential";
+    button2.textContent = "Sequential MNIST";
+    button2.title = "Pixels presented sequentially, left to right, top to bottom"
+    button2.addEventListener("click", function() {clickGameVariant("sequential")});
+    subsubrow2.appendChild(button2);
+
+    const subsubrow3 = document.createElement("div");
+    subsubrow3.classList.add("row");
+    const button3 = document.createElement("button");
+    button3.classList.add("button-primary");
+    button3.id = "permuted";
+    button3.textContent = "Permuted MNIST";
+    button3.title = "Pixels presented sequentially, in a (fixed) permuted order"
+    button3.addEventListener("click", function() {clickGameVariant("permuted")});
+    subsubrow3.appendChild(button3);
+    
+    const subcol2 = document.createElement("div");
+    subcol2.classList.add("one-half", "column");
+    
+    const h52 = document.createElement("h5");
+    h52.textContent = "Duration:";
+
+    const subsubrow4 = document.createElement("div");
+    subsubrow4.classList.add("row");
+    const button4 = document.createElement("button");
+    button4.classList.add("button-primary");
+    button4.id = "10q";
+    button4.textContent = "10 questions";
+    button4.addEventListener("click", function() {clickGameDuration("10q")});
+    subsubrow4.appendChild(button4);
+
+    const subsubrow5 = document.createElement("div");
+    subsubrow5.classList.add("row");
+    const button5 = document.createElement("button");
+    button5.classList.add("button-primary");
+    button5.id = "endless";
+    button5.textContent = "Endless";
+    button5.addEventListener("click", function() {clickGameDuration("endless")});
+    subsubrow5.appendChild(button5);
+
+    const subrow2 = document.createElement("div");
+    subrow2.classList.add("row");
+    const subcol3 = document.createElement("div");
+    subcol3.classList.add("one", "column", "offset-by-ten");
+    const button6 = document.createElement("button");
+    button6.classList.add("button-primary")
+    button6.id = "submit";
+    button6.textContent = "Start";
+    button6.style.setProperty("background-color", "#ccc");
+    button6.style.setProperty("border-color", "#ccc");
+    button6.addEventListener("click", clickGameStart);
+
+    subcol1.appendChild(h51);
+    subcol1.appendChild(subsubrow1);
+    subcol1.appendChild(subsubrow2);
+    subcol1.appendChild(subsubrow3);
+    subcol2.appendChild(h52);
+    subcol2.appendChild(subsubrow4);
+    subcol2.appendChild(subsubrow5);
+    subcol3.appendChild(button6);
+    subrow1.appendChild(subcol1);
+    subrow1.appendChild(subcol2);
+    subrow2.appendChild(subcol3);
+    col.appendChild(h3);
+    col.appendChild(subrow1);
+    col.appendChild(subrow2);
+    row.appendChild(col);
+    main.appendChild(row);
+  }
+
+  buildGameSelect();
+
+
+  function clickGameVariant(variant) {
+    var variant_selected = false;
+    for (let i = 0; i < all_variants.length; i++) {
+      if (variant == all_variants[i]) {
+        if (
+            (document.getElementById(all_variants[i]).style.getPropertyValue("background-color") == "rgb(51, 195, 240)") |
+            (document.getElementById(all_variants[i]).style.getPropertyValue("background-color") == "")
+        ) {
+            variant_selected = true;
+            document.getElementById(all_variants[i]).style.setProperty("background-color", "#33f082");
+            document.getElementById(all_variants[i]).style.setProperty("border-color", "#33f082");
+        } else {
+            variant_selected = false;
+            document.getElementById(all_variants[i]).style.setProperty("background-color", "#33C3F0");
+            document.getElementById(all_variants[i]).style.setProperty("border-color", "#33C3F0");
+        }
+      } else {
+        document.getElementById(all_variants[i]).style.setProperty("background-color", "#33C3F0");
+        document.getElementById(all_variants[i]).style.setProperty("border-color", "#33C3F0");
+      }
+    }
+    var duration_selected = checkDurationSelected();
+    if ((variant_selected == true) && (duration_selected == true)) {
+        enableGameStart();
+    } else {
+        disableGameStart();
+    }
+  }
+
+
+  function clickGameDuration(duration) {
+    var duration_selected = false;
+    for (let i = 0; i < all_durations.length; i++) {
+      if (duration == all_durations[i]) {
+        if (
+            (document.getElementById(all_durations[i]).style.getPropertyValue("background-color") == "rgb(51, 195, 240)") |
+            (document.getElementById(all_durations[i]).style.getPropertyValue("background-color") == "")
+        ) { 
+            duration_selected = true;
+            document.getElementById(all_durations[i]).style.setProperty("background-color", "#33f082");
+            document.getElementById(all_durations[i]).style.setProperty("border-color", "#33f082");
+        } else {
+            duration_selected = false;
+            document.getElementById(all_durations[i]).style.setProperty("background-color", "#33C3F0");
+            document.getElementById(all_durations[i]).style.setProperty("border-color", "#33C3F0");
+        }
+      } else {
+        document.getElementById(all_durations[i]).style.setProperty("background-color", "#33C3F0");
+        document.getElementById(all_durations[i]).style.setProperty("border-color", "#33C3F0");
+      }
+    }
+    var variant_selected = checkVariantSelected();
+    if ((variant_selected == true) && (duration_selected == true)) {
+        enableGameStart();
+    } else {
+        disableGameStart();
+    }
+  }
+
+
+  function checkVariantSelected() {
+    var selected_variant = null;
+    for (let i = 0; i < all_variants.length; i++) {
+      if (document.getElementById(all_variants[i]).style.getPropertyValue("background-color") == "rgb(51, 240, 130)") {
+        selected_variant = all_variants[i];
+      }
+    }
+    return (selected_variant != null);
+  }
+  
+
+  function getVariantSelected() {
+    var selected_variant = null;
+    for (let i = 0; i < all_variants.length; i++) {
+      if (document.getElementById(all_variants[i]).style.getPropertyValue("background-color") == "rgb(51, 240, 130)") {
+        selected_variant = all_variants[i];
+      }
+    }
+    return selected_variant;
+  }
+
+
+  function checkDurationSelected() {
+    var selected_duration = null;
+    for (let i = 0; i < all_durations.length; i++) {
+      if (document.getElementById(all_durations[i]).style.getPropertyValue("background-color") == "rgb(51, 240, 130)") {
+        selected_duration = all_durations[i];
+      }
+    }
+    return (selected_duration != null);
+  }
+
+
+  function getDurationSelected() {
+    var selected_duration = null;
+    for (let i = 0; i < all_durations.length; i++) {
+      if (document.getElementById(all_durations[i]).style.getPropertyValue("background-color") == "rgb(51, 240, 130)") {
+        selected_duration = all_durations[i];
+      }
+    }
+    return selected_duration;
+  }
+
+
+  function enableGameStart() {
+    document.getElementById("submit").style.setProperty("background-color", "#33C3F0");
+    document.getElementById("submit").style.setProperty("border-color", "#33C3F0");
+  }
+
+
+  function disableGameStart() {
+    document.getElementById("submit").style.setProperty("background-color", "#ccc");
+    document.getElementById("submit").style.setProperty("border-color", "#ccc");
+  }
+
+
+  function clickGameStart() {
+    const selected_variant = getVariantSelected();
+    const selected_duration = getDurationSelected();
+    if ((selected_variant == null) || (selected_duration == null)) {return;}
+
+    document.getElementById("game-select").remove();
+    variant = selected_variant;
+    duration = selected_duration;
+    buildGame();
+  }
+
+
+  // classic mnist
+  const buttons = ["0", "1", "2", "3", "4", "5", "6", "7", "8", "9"];
+
+
+  function chooseImage() {
+    const imgclass = Math.floor(Math.random() * 10);
+    const imgidx = Math.floor(Math.random() * map[imgclass.toString()].length);
+    answer = imgclass.toString()
+    imgname = map[imgclass.toString()][imgidx].toString();
+    console.log(answer);
+    console.log(imgname);
+    return [answer, imgname];
+  }
+
+
+  function buildGame() {
+    var displayFunc;
+    if (variant == "classic") {
+        displayFunc = displayClassic
+    } else if (variant == "sequential") {
+        displayFunc = displaySequential
+    } else if (variant == "permuted") {
+        displayFunc = displaySequential
+    }
+
+    const main = document.getElementById("main");
+
+    const row = document.createElement("div");
+    row.classList.add("row");
+    row.id = "game";
+
+    const col = document.createElement("div");
+    col.classList.add("twelve", "columns");
+    col.style.setProperty("margin-top", "5%");
+
+    const subrow1 = document.createElement("div");
+    subrow1.classList.add("row");
+
+    const subcol1 = document.createElement("div");
+    subcol1.classList.add("twelve", "columns");
+    subcol1.style.setProperty("display", "flex");
+    subcol1.style.setProperty("flex-direction", "row");
+    subcol1.style.setProperty("justify-content", "center");
+
+    const h3 = document.createElement("h3");
+    h3.textContent = (variant == "classic" ? "Classic MNIST" : (variant == "sequential" ? "Sequential MNIST" : "Permuted MNIST")) + (duration == "endless" ? ": Endless" : "");
+
+    const subrow2 = document.createElement("div");
+    subrow2.classList.add("row");
+
+    const subcol2 = document.createElement("div");
+    subcol2.classList.add("four", "columns", "offset-by-four");
+    subcol2.style.setProperty("display", "flex");
+    subcol2.style.setProperty("flex-direction", "row");
+    subcol2.style.setProperty("justify-content", "center");
+
+    const h5 = document.createElement("h5");
+    h5.textContent = "Question " + questionNumber.toString() + ":";
+    h5.id = "counter";
+
+    const subcol3 = document.createElement("div");
+    subcol3.classList.add("four", "columns", "offset-by-eight");
+    subcol3.style.setProperty("display", "flex");
+    subcol3.style.setProperty("flex-direction", "row");
+    subcol3.style.setProperty("justify-content", "right");
+    subcol3.id = "score";
+    subcol3.textContent = "Score: " + score.toString();
+
+    const subrow3 = document.createElement("div");
+    subrow3.classList.add("row");
+
+    const subcol4 = document.createElement("div");
+    subcol4.classList.add("four", "columns", "offset-by-four");
+    subcol4.style.setProperty("display", "flex");
+    subcol4.style.setProperty("flex-direction", "row");
+    subcol4.style.setProperty("justify-content", "center");
+    subcol4.id = "img-container"
+
+    const imgbox = document.createElement("img");
+    imgbox.id = "img-box"
+    subcol4.appendChild(imgbox);
+
+    const subrow4 = document.createElement("div");
+    subrow4.classList.add("row");
+    subrow4.innerHTML = "&nbsp;"
+
+    const subrow5 = document.createElement("div");
+    subrow5.classList.add("row");
+
+    const subcol5 = document.createElement("div");
+    subcol5.classList.add("twelve", "columns");
+    subcol5.style.setProperty("display", "flex");
+    subcol5.style.setProperty("flex-direction", "row");
+    subcol5.style.setProperty("justify-content", "space-around");
+    subcol5.style.setProperty("flex-wrap", "wrap");
+
+    const buttonElements = [];
+    for (let i = 0; i < buttons.length; i++) {
+        const button = document.createElement("button");
+        button.classList.add("button-primary");
+        button.id = buttons[i];
+        button.textContent = buttons[i];
+        button.addEventListener("click", function() {checkAnswer(buttons[i])});
+        buttonElements.push(button);
+    }
+
+    const subrow6 = document.createElement("div");
+    subrow6.classList.add("row");
+
+    const subcol6 = document.createElement("div");
+    subcol6.classList.add("six", "columns");
+    subcol6.style.setProperty("display", "flex");
+    subcol6.style.setProperty("flex-direction", "row");
+    subcol6.style.setProperty("justify-content", "left");
+
+    const button1 = document.createElement("button");
+    button1.classList.add("button-primary");
+    button1.id = "quit";
+    button1.textContent = "Quit";
+    if (duration == "endless") {
+        button1.addEventListener("click", clickQuitEndless);
+    } else {
+        button1.addEventListener("click", clickQuit);
+    }
+
+    const subcol7 = document.createElement("div");
+    subcol7.classList.add("six", "columns");
+    subcol7.style.setProperty("display", "flex");
+    subcol7.style.setProperty("flex-direction", "row");
+    subcol7.style.setProperty("justify-content", "right");
+
+    const button2 = document.createElement("button");
+    button2.classList.add("button-primary");
+    button2.id = "next";
+    button2.textContent = "Next";
+    button2.style.setProperty("background-color", "#ccc");
+    button2.style.setProperty("border-color", "#ccc");
+    if (duration == "endless") {
+        button2.addEventListener("click", function() {clickNextEndless(displayFunc)});
+    } else {
+        button2.addEventListener("click", function() {clickNext(displayFunc)});
+    }
+
+    subcol7.appendChild(button2);
+    subcol6.appendChild(button1);
+    for (let i = 0; i < buttonElements.length; i++) {
+      subcol5.appendChild(buttonElements[i]);
+    }
+    subcol2.appendChild(h5);
+    subcol1.appendChild(h3);
+
+    subrow6.appendChild(subcol6);
+    subrow6.appendChild(subcol7);
+    subrow5.appendChild(subcol5);
+    subrow3.appendChild(subcol4);
+    subrow2.appendChild(subcol2);
+    subrow2.appendChild(subcol3);
+    subrow1.appendChild(subcol1);
+
+    col.appendChild(subrow1);
+    col.appendChild(subrow2);
+    col.appendChild(subrow3);
+    col.appendChild(subrow4);
+
+    if (variant != "classic") {
+      const playrow = document.createElement("div");
+      playrow.classList.add("row");
+
+      const playcol = document.createElement("div");
+      playcol.classList.add("columns", "twelve");
+      playcol.style.setProperty("display", "flex");
+      playcol.style.setProperty("flex-direction", "row");
+      playcol.style.setProperty("justify-content", "center");
+
+      const playbutton = document.createElement("button");
+      playbutton.classList.add("button-primary");
+      playbutton.id = "play";
+      playbutton.textContent = "Play";
+      playbutton.style.setProperty("background-color", "#ccc");
+      playbutton.style.setProperty("border-color", "#ccc");
+      playbutton.addEventListener("click", playImageSequence)
+
+      playcol.appendChild(playbutton);
+      playrow.appendChild(playcol);
+
+      col.appendChild(playrow);
+    }
+
+    col.appendChild(subrow5);
+    col.appendChild(subrow6);
+
+    if (variant != "classic") {
+      const sliderrow = document.createElement("div");
+      sliderrow.classList.add("row");
+
+      const slidercol = document.createElement("div");
+      slidercol.classList.add("columns", "four", "offset-by-eight");
+      slidercol.style.setProperty("display", "flex");
+      slidercol.style.setProperty("flex-direction", "row");
+      slidercol.style.setProperty("justify-content", "space-around");
+      slidercol.style.setProperty("flex-wrap", "wrap");
+      
+      const slider = document.createElement("input");
+      slider.type = "range";
+      slider.classList.add("slider");
+      slider.id = "sequential-speed";
+      slider.min = 1;
+      slider.max = 10;
+      slider.value = 5;
+
+      const slidername = document.createElement("p");
+      slidername.textContent = "Playback speed:"
+
+      slidercol.appendChild(slidername);
+      slidercol.appendChild(slider);
+      sliderrow.appendChild(slidercol);
+
+      col.appendChild(sliderrow);
+    }
+
+    row.appendChild(col);
+    main.appendChild(row);
+
+    newQuestion(displayFunc);
+  }
+
+
+  function displayClassic() {
+    const imgbox = document.getElementById("img-box")
+    if (imgbox == null) {
+        console.log("no imgbox found");
+        return;
+    }
+    imgbox.src = ("images/mnist_png/" + answer + "/" + imgname + ".png");
+    imgbox.style.width = "70%";
+  }
+
+  
+  function displaySequential() {
+    const imgbox = document.getElementById("img-box");
+    imgbox.style.width = "70%";
+    if (imgbox == null) {
+        console.log("no imgbox found");
+        return;
+    }
+
+    var script = document.createElement("script");
+    script.src = "js/mnist/" + imgname + ".js";
+    script.async = true;
+    script.onload = () => {
+      console.log('Script loaded successfuly');
+      resetSequentialImage();
+    };
+
+    script.onerror = () => {
+      console.log('Error occurred while loading script');
+    };
+
+    document.body.appendChild(script);
+  }
+
+  
+  function resetSequentialImage() {
+    const imgbox = document.getElementById("img-box");
+    if (imgbox == null) {
+        console.log("no imgbox found");
+        return;
+    }
+    const playbutton = document.getElementById("play");
+
+    imgbox.src = "images/pixels/" + pixel_data[0].toString() + ".png";
+    playbutton.style.setProperty("background-color", "#33C3F0");
+    playbutton.style.setProperty("border-color", "#33C3F0");
+  }
+
+
+  function playImageSequence() {
+    const playbutton = document.getElementById("play");
+    if (playbutton.style.getPropertyValue("background-color") != "rgb(51, 195, 240)") {
+        return;
+    }
+    playbutton.style.setProperty("background-color", "#ccc");
+    playbutton.style.setProperty("border-color", "#ccc");
+    playbutton.textContent = "Playing...";
+
+    const imgbox = document.getElementById("img-box");
+    const speed = Math.floor(document.getElementById("sequential-speed").value);
+    const speed_map = [128, 64, 32, 16, 12, 8, 6, 4, 3, 2, 1];
+
+    var counter = 0;
+    var timer;
+    timer = setInterval(stepImage, speed_map[speed]);
+    function stepImage() {
+      if (counter == 784) {
+        clearInterval(timer);
+        playbutton.style.setProperty("background-color", "#33C3F0");
+        playbutton.style.setProperty("border-color", "#33C3F0");
+        playbutton.textContent = "Play";
+      } else if (document.getElementById("next").style.getPropertyValue("background-color") == "rgb(51, 195, 240)") {
+        clearInterval(timer);
+        playbutton.style.setProperty("background-color", "#ccc");
+        playbutton.style.setProperty("border-color", "#ccc");
+        playbutton.textContent = "Play";
+      } else {
+        if (variant == "sequential") {
+          imgbox.src = "images/pixels/" + pixel_data[counter].toString() + ".png";
+        } else {
+          imgbox.src = "images/pixels/" + pixel_data[permutation[counter]].toString() + ".png";
+        }
+        counter += 1;
+      }
+    }
+  }
+
+
+  function newQuestion(display) {
+    chooseImage();
+
+    display();
+
+    const question = document.getElementById("counter");
+    questionNumber += 1;
+    question.textContent = "Question " + questionNumber.toString() + ":";
+    
+    for (let i = 0; i < buttons.length; i++) {
+        document.getElementById(buttons[i]).style.setProperty("background-color", "#33C3F0");
+        document.getElementById(buttons[i]).style.setProperty("border-color", "#33C3F0");
+    }
+
+    document.getElementById("next").style.setProperty("background-color", "#ccc");
+    document.getElementById("next").style.setProperty("border-color", "#ccc");
+  }
+
+
+  function checkAnswer(selection) {
+    if (document.getElementById("next").style.getPropertyValue("background-color") == "rgb(51, 195, 240)") {
+        return;
+    }
+    document.getElementById((answer)).style.setProperty("background-color", "#33f082");
+    document.getElementById((answer)).style.setProperty("border-color", "#33f082");
+    const imgbox = document.getElementById("img-box");
+    imgbox.src = "images/mnist_png/" + answer + "/" + imgname + ".png";
+
+    if (selection == answer) {
+      score += 1;
+      document.getElementById("score").textContent = "Score: " + score.toString();
+    } else {
+      document.getElementById((selection)).style.setProperty("background-color", "#f03333");
+      document.getElementById((selection)).style.setProperty("border-color", "#f03333");
+    }
+
+    document.getElementById("next").style.setProperty("background-color", "#33C3F0");
+    document.getElementById("next").style.setProperty("border-color", "#33C3F0");
+  }
+
+
+  function clickQuit() {
+    document.getElementById("game").remove();
+    buildGameSelect();
+  }
+
+
+  function clickQuitEndless() {
+    const progression = [
+      "Sike!",
+      "Quit",
+      "LOL you thought you could quit? It's called \"Endless\" dummy",
+      "Quitting? Quitting is for losers. Are you a loser?",
+      "Okay fine if you really want to quit...",
+    ];
+    const button = document.getElementById("quit");
+    let i = 0;
+    while (i < progression.length) {
+        if (button.textContent == progression[i]) {break;}
+        i += 1;
+    }
+    if (i < (progression.length - 1)) {
+        i += 1;
+        button.textContent = progression[i];
+    } else {
+        if (Math.random() < 0.2) {
+          i = 0;
+          button.textContent = progression[i];
+        } else {
+          clickQuit();
+        }
+    }
+  }
+
+
+  function clickNext(display) {
+    const button = document.getElementById("next");
+    if (button.style.getPropertyValue("background-color") == "rgb(51, 195, 240)") {
+        newQuestion(display);
+        if (button.textContent == "Finish") {
+            return clickFinish();
+        }
+        if (questionNumber >= 10) {
+            button.textContent = "Finish";
+        }
+    } else {
+        return;
+    }
+  }
+
+
+  function clickNextEndless(display) {
+    const button = document.getElementById("next");
+    if (button.style.getPropertyValue("background-color") == "rgb(51, 195, 240)") {
+        newQuestion(display);
+    } else {
+        return;
+    }
+  }
+
+
+  function clickFinish() {
+    document.getElementById("game").remove();
+    buildEndScreen();
+  }
+
+
+  function clickReplay() {
+    answer = null;
+    imgname = null;
+    score = 0;
+    questionNumber = 0;
+    document.getElementById("game").remove();
+    buildGame();
+  }
+
+
+  function binomialcdf(score) {
+    const factorial = [1, 1, 2, 6, 24, 120, 720, 5040, 40320, 362880, 3628800];
+    cdf = 0;
+    for (let i = score; i < 11; i++) {
+        cdf += factorial[10] / (factorial[i] * factorial[10 - i]) * ((1/10) ** i) * ((9/10) ** (10 - i));
+    }
+    return cdf;
+  }
+  
+  function chooseMessage(score) {
+    const p = binomialcdf(score);
+    var worstModel;
+    if (variant == "classic") {
+        worstModel = "MLP";
+    } else {
+        worstModel = "RNN";
+    }
+    const terrible_messages = [ // < chance
+      "Not bad! You're so close to beating chance performance!",
+      "Aw... that's not great. But it usually takes humans a 2-4 years to learn all the numbers up to ten, so just keep on trying!",
+    ];
+    const bad_messages = [ // == chance, < model
+      "Aw... that's not great. But it usually takes humans a 2-4 years to learn all the numbers up to ten, so just keep on trying!",
+    ];
+    const okay_messages = [
+      "Well, at least you're better* than random chance! (*p-value = " + p.toFixed(2).toString() + ")",
+    ];
+    const good_messages = [ // > chance, < model
+      "Whoa, if you try a little harder, you might just beat an " + worstModel + "!",
+      "Haha you did worse than " + worstModel + "! You just weren't really trying right? Right?",
+    ];
+    const great_messages = [ // > model
+      "Nice! With 86 billion neurons, you've just barely managed to beat an ANN!"
+    ];
+    var chance = 1;
+    var model;
+    if (variant == "permuted") {
+        model = 8.2;
+    } else {
+        model = 8.5;
+    }
+    if (score < chance) {
+        message = terrible_messages[Math.floor(Math.random() * 2)];
+    } else if (score == chance) {
+        message = bad_messages[0];
+    } else if ((score > chance) && (score < 4.0)) {
+        message = okay_messages[0];
+    } else if ((score > chance) && (score >= 4.0)) {
+        message = good_messages[Math.floor(Math.random() * 2)];
+    } else if (score >= model) {
+        message = great_messages[0];
+    }
+    return message;
+  }
+
+
+  function buildEndScreen() {
+    const main = document.getElementById("main");
+
+    const row = document.createElement("div");
+    row.classList.add("row");
+    row.id = "game";
+
+    const col = document.createElement("div");
+    col.classList.add("twelve", "columns");
+    col.style.setProperty("margin-top", "5%");
+
+    const subrow1 = document.createElement("div");
+    subrow1.classList.add("row");
+
+    const subcol1 = document.createElement("div");
+    subcol1.classList.add("twelve", "columns");
+    subcol1.style.setProperty("display", "flex");
+    subcol1.style.setProperty("flex-direction", "row");
+    subcol1.style.setProperty("justify-content", "center");
+
+    const h3 = document.createElement("h3");
+    h3.textContent = "Your final score is: " + (score * 10).toFixed(2).toString() + "%";
+
+    const subrow2 = document.createElement("div");
+    subrow2.classList.add("row");
+
+    const subcol2 = document.createElement("div");
+    subcol2.classList.add("twelve", "columns");
+    subcol2.style.setProperty("display", "flex");
+    subcol2.style.setProperty("flex-direction", "row");
+    subcol2.style.setProperty("justify-content", "center");
+    subcol2.style.setProperty("flex-wrap", "wrap");
+
+    const h5 = document.createElement("h5");
+    h5.innerHTML = chooseMessage(score);
+
+    const subrow3 = document.createElement("div");
+    subrow3.classList.add("row");
+
+    const subcol3 = document.createElement("div");
+    subcol3.classList.add("four", "columns", "offset-by-four");
+    subcol3.style.setProperty("display", "flex");
+    subcol3.style.setProperty("flex-direction", "row");
+    subcol3.style.setProperty("justify-content", "center");
+
+    const table = document.createElement("table");
+    table.classList.add("u-half-width");
+
+    const head1 = document.createElement("th");
+    head1.textContent = "Model";
+    const head2 = document.createElement("th");
+    head2.textContent = "Accuracy (%)";
+    const tr1 = document.createElement("tr");
+    const thead = document.createElement("thead");
+    tr1.appendChild(head1);
+    tr1.appendChild(head2);
+    thead.appendChild(tr1);
+    // build table
+    const tbody = document.createElement("tbody");
+    const tr2 = document.createElement("tr");
+    const td1 = document.createElement("td");
+    const td2 = document.createElement("td");
+    td1.textContent = "You";
+    td2.textContent = (score * 10).toFixed(2).toString();
+    tr2.appendChild(td1);
+    tr2.appendChild(td2);
+    tbody.appendChild(tr2);
+
+    const tabModels = (variant == "classic") ? classicModels : ((variant == "sequential") ? sequentialModels : permutedModels);
+    const tabScores = (variant == "classic") ? classicScores : ((variant == "sequential") ? sequentialScores : permutedScores);
+    var tdm;
+    var tds;
+    var tr;
+    for (let i = 0; i < tabModels.length; i++) {
+        tdm = document.createElement("td");
+        tds = document.createElement("td");
+        tdm.textContent = tabModels[i];
+        tds.textContent = tabScores[i].toFixed(2).toString();
+        tr = document.createElement("tr");
+        tr.appendChild(tdm);
+        tr.appendChild(tds);
+        tbody.appendChild(tr);
+    }
+
+    const subrow4 = document.createElement("div");
+    subrow4.classList.add("row");
+
+    const subcol4 = document.createElement("div");
+    subcol4.classList.add("six", "columns");
+    subcol4.style.setProperty("display", "flex");
+    subcol4.style.setProperty("flex-direction", "row");
+    subcol4.style.setProperty("justify-content", "left");
+
+    const button1 = document.createElement("button");
+    button1.classList.add("button-primary");
+    button1.id = "quit";
+    button1.textContent = "Quit";
+    button1.addEventListener("click", clickQuit)
+
+    const subcol5 = document.createElement("div");
+    subcol5.classList.add("six", "columns");
+    subcol5.style.setProperty("display", "flex");
+    subcol5.style.setProperty("flex-direction", "row");
+    subcol5.style.setProperty("justify-content", "right");
+
+    const button2 = document.createElement("button");
+    button2.classList.add("button-primary");
+    button2.id = "replay";
+    button2.textContent = "Play again";
+    button2.addEventListener("click", clickReplay);
+
+    subcol5.appendChild(button2);
+    subcol4.appendChild(button1);
+    table.appendChild(thead);
+    table.appendChild(tbody);
+    subcol3.appendChild(table);
+    subcol2.appendChild(h5);
+    subcol1.appendChild(h3);
+
+    subrow4.appendChild(subcol4);
+    subrow4.appendChild(subcol5);
+    subrow3.appendChild(subcol3);
+    subrow2.appendChild(subcol2);
+    subrow1.appendChild(subcol1);
+
+    col.appendChild(subrow1);
+    col.appendChild(subrow2);
+    col.appendChild(subrow3);
+    col.appendChild(subrow4);
+
+    row.appendChild(col);
+    main.appendChild(row);
+  }
+  </script>
+
+<!-- End Document
+  –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+</body>
+</html>
