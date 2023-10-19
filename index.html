@@ -513,9 +513,9 @@
       slider.type = "range";
       slider.classList.add("slider");
       slider.id = "sequential-speed";
-      slider.min = 1;
+      slider.min = 0;
       slider.max = 10;
-      slider.value = 5;
+      slider.value = 3;
 
       const slidername = document.createElement("p");
       slidername.textContent = "Playback speed:"
@@ -593,7 +593,7 @@
 
     const imgbox = document.getElementById("img-box");
     const speed = Math.floor(document.getElementById("sequential-speed").value);
-    const speed_map = [128, 64, 32, 16, 12, 8, 6, 4, 3, 2, 1];
+    const speed_map = [96, 64, 48, 32, 24, 16, 12, 8, 6, 4, 2];
 
     var counter = 0;
     var timer;
